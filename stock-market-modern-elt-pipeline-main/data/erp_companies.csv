@@ -1,0 +1,106 @@
+company_symbol,company_name,mic,exchange_name,operating_mic,locale,currency,listed_since,sector,industry
+OHBV,Sanchez-Taylor,XNAS,NASDAQ,XNAS,us,usd,1992-06-16,Healthcare,Biotechnology
+RVIF,"Henderson, Johnson and Robinson",XNYS,New York Stock Exchange,XNYS,us,usd,2019-11-15,Energy,Oil & Gas E&P
+MBJM,"Santos, Gardner and Robinson",ARCX,NYSE Arca,XNYS,us,usd,2004-05-31,Industrials,Aerospace & Defense
+ZAWZ,Wolfe LLC,ARCX,NYSE Arca,XNYS,us,usd,2004-05-23,Healthcare,Biotechnology
+JNWV,Davis Inc,XNAS,NASDAQ,XNAS,us,usd,2009-11-29,Consumer Cyclical,Auto Manufacturers
+WMQZ,Blair PLC,XNYS,New York Stock Exchange,XNYS,us,usd,1993-12-23,Utilities,Regulated Electric
+YFJS,"Montgomery, Hensley and Ray",XASE,NYSE American,XNYS,us,usd,1990-03-20,Technology,Software—Infrastructure
+CQOX,Galloway-Wyatt,XNYS,New York Stock Exchange,XNYS,us,usd,1992-05-10,Healthcare,Biotechnology
+YRDO,Martin-Kelly,ARCX,NYSE Arca,XNYS,us,usd,2003-08-26,Industrials,Aerospace & Defense
+SRPE,"Reid, Ferguson and Sanchez",IEXG,Investors Exchange,IEXG,us,usd,2016-12-09,Utilities,Regulated Electric
+YROS,"Robinson, Nguyen and Tate",XNYS,New York Stock Exchange,XNYS,us,usd,1989-04-16,Consumer Cyclical,Auto Manufacturers
+OCZU,Adams-Clark,ARCX,NYSE Arca,XNYS,us,usd,2024-01-30,Consumer Cyclical,Auto Manufacturers
+TUNP,Foster-Rocha,XASE,NYSE American,XNYS,us,usd,2016-09-15,Industrials,Aerospace & Defense
+JQIP,"Hoffman, Baker and Richards",XASE,NYSE American,XNYS,us,usd,2025-03-11,Utilities,Regulated Electric
+ZXOI,"Snyder, Campos and Callahan",BATS,Bats BZX Exchange,BATS,us,usd,1995-11-19,Technology,Software—Infrastructure
+OKYR,Carlson-Cruz,ARCX,NYSE Arca,XNYS,us,usd,2017-05-02,Real Estate,REIT—Retail
+HQJA,"Le, Maldonado and Herrera",BATS,Bats BZX Exchange,BATS,us,usd,2003-08-22,Energy,Oil & Gas E&P
+XPVH,Graham-Chavez,ARCX,NYSE Arca,XNYS,us,usd,2003-05-29,Industrials,Aerospace & Defense
+GWLG,Harrell LLC,BATS,Bats BZX Exchange,BATS,us,usd,2020-01-12,Healthcare,Biotechnology
+MMJX,Ryan PLC,XNYS,New York Stock Exchange,XNYS,us,usd,1985-07-10,Real Estate,REIT—Retail
+MUFB,Hickman LLC,XNYS,New York Stock Exchange,XNYS,us,usd,2001-10-11,Consumer Defensive,Packaged Foods
+DPKF,Dennis Inc,BATS,Bats BZX Exchange,BATS,us,usd,2021-09-25,Utilities,Regulated Electric
+XIIQ,Arroyo-Martin,BATS,Bats BZX Exchange,BATS,us,usd,2021-05-23,Technology,Software—Infrastructure
+MBNI,"Vaughn, Marquez and Ross",XNAS,NASDAQ,XNAS,us,usd,2010-11-23,Basic Materials,Gold
+CHCH,Walker LLC,IEXG,Investors Exchange,IEXG,us,usd,1986-11-30,Healthcare,Biotechnology
+LJOL,Smith Ltd,XASE,NYSE American,XNYS,us,usd,1989-06-28,Healthcare,Biotechnology
+OECV,Palmer LLC,IEXG,Investors Exchange,IEXG,us,usd,2018-07-08,Energy,Oil & Gas E&P
+NIIU,"Johnston, Sanchez and Kennedy",XNAS,NASDAQ,XNAS,us,usd,2013-03-08,Utilities,Regulated Electric
+MGGQ,Gomez-Jenkins,BATS,Bats BZX Exchange,BATS,us,usd,1989-03-03,Utilities,Regulated Electric
+RPPG,Powell LLC,ARCX,NYSE Arca,XNYS,us,usd,1992-12-01,Healthcare,Biotechnology
+PMMI,Taylor-White,XNYS,New York Stock Exchange,XNYS,us,usd,2016-12-18,Industrials,Aerospace & Defense
+PECZ,"Garcia, Pearson and Fernandez",BATS,Bats BZX Exchange,BATS,us,usd,1986-06-27,Healthcare,Biotechnology
+FWPK,Tucker-Lewis,ARCX,NYSE Arca,XNYS,us,usd,2012-10-09,Healthcare,Biotechnology
+DKYA,Baker-Bowers,XASE,NYSE American,XNYS,us,usd,2016-06-12,Energy,Oil & Gas E&P
+SBSU,"Stanley, Tucker and Lee",XASE,NYSE American,XNYS,us,usd,2000-04-18,Consumer Defensive,Packaged Foods
+DLVI,Adkins Inc,ARCX,NYSE Arca,XNYS,us,usd,1988-11-23,Consumer Defensive,Packaged Foods
+LEGH,Brown PLC,BATS,Bats BZX Exchange,BATS,us,usd,1990-12-08,Industrials,Aerospace & Defense
+LEME,"Hensley, Powell and David",XNAS,NASDAQ,XNAS,us,usd,2024-04-01,Energy,Oil & Gas E&P
+PLMC,"Miller, Sandoval and Cunningham",XNAS,NASDAQ,XNAS,us,usd,2007-01-05,Healthcare,Biotechnology
+QNQT,Allen-Foster,IEXG,Investors Exchange,IEXG,us,usd,2005-11-24,Financial Services,Banks—Regional
+DUWE,Ellis PLC,IEXG,Investors Exchange,IEXG,us,usd,1992-04-15,Industrials,Aerospace & Defense
+EING,Anderson-Bailey,ARCX,NYSE Arca,XNYS,us,usd,1990-03-01,Basic Materials,Gold
+PXSK,Bass-Warner,XASE,NYSE American,XNYS,us,usd,2021-06-23,Energy,Oil & Gas E&P
+AQJT,"Garcia, Humphrey and Baker",XNAS,NASDAQ,XNAS,us,usd,1992-10-07,Consumer Cyclical,Auto Manufacturers
+VJJR,Jacobs-Robbins,ARCX,NYSE Arca,XNYS,us,usd,1999-05-04,Consumer Defensive,Packaged Foods
+ROQG,King-Odonnell,XNYS,New York Stock Exchange,XNYS,us,usd,1988-12-09,Industrials,Aerospace & Defense
+FOBR,Smith and Sons,XNYS,New York Stock Exchange,XNYS,us,usd,2003-04-23,Consumer Defensive,Packaged Foods
+KVCJ,"Patterson, Smith and Jones",XASE,NYSE American,XNYS,us,usd,1995-08-17,Energy,Oil & Gas E&P
+ICXL,"Hernandez, Anderson and Parker",XNYS,New York Stock Exchange,XNYS,us,usd,1988-03-13,Industrials,Aerospace & Defense
+WNRP,"Garcia, Deleon and Henson",IEXG,Investors Exchange,IEXG,us,usd,2013-02-19,Consumer Defensive,Packaged Foods
+NVJP,Cherry and Sons,ARCX,NYSE Arca,XNYS,us,usd,2013-07-16,Basic Materials,Gold
+BLVV,Pham-Shields,XASE,NYSE American,XNYS,us,usd,2002-05-16,Basic Materials,Gold
+RKYS,Reyes Inc,ARCX,NYSE Arca,XNYS,us,usd,2017-07-07,Energy,Oil & Gas E&P
+OMDW,Hoover-Savage,ARCX,NYSE Arca,XNYS,us,usd,2000-08-26,Industrials,Aerospace & Defense
+BQMZ,Ramirez-Jones,XNAS,NASDAQ,XNAS,us,usd,2004-06-23,Consumer Cyclical,Auto Manufacturers
+WPGZ,"Zavala, Herrera and Crosby",IEXG,Investors Exchange,IEXG,us,usd,1993-05-01,Energy,Oil & Gas E&P
+QLLQ,Rodriguez Group,XNAS,NASDAQ,XNAS,us,usd,2009-01-03,Utilities,Regulated Electric
+UYUB,"Joyce, Wilson and Lam",XASE,NYSE American,XNYS,us,usd,1998-06-02,Utilities,Regulated Electric
+QCTB,Meyer PLC,XASE,NYSE American,XNYS,us,usd,1998-11-22,Consumer Defensive,Packaged Foods
+XBEQ,Hanson-Alvarado,ARCX,NYSE Arca,XNYS,us,usd,1993-12-18,Financial Services,Banks—Regional
+UTGT,"Ortiz, Powell and Phillips",IEXG,Investors Exchange,IEXG,us,usd,1994-02-22,Basic Materials,Gold
+MAQY,"Adkins, Thompson and Carroll",XNYS,New York Stock Exchange,XNYS,us,usd,2013-02-12,Technology,Software—Infrastructure
+JATS,Jordan PLC,XNYS,New York Stock Exchange,XNYS,us,usd,2007-05-31,Financial Services,Banks—Regional
+DCCR,Dixon Ltd,XNAS,NASDAQ,XNAS,us,usd,1997-01-11,Financial Services,Banks—Regional
+QFSG,"Schultz, Rogers and Cardenas",XNAS,NASDAQ,XNAS,us,usd,2001-06-19,Real Estate,REIT—Retail
+RTOZ,Hernandez Inc,IEXG,Investors Exchange,IEXG,us,usd,2002-02-22,Healthcare,Biotechnology
+ENXE,Perry-Soto,XASE,NYSE American,XNYS,us,usd,1998-09-18,Real Estate,REIT—Retail
+TSYF,Sanchez-Douglas,IEXG,Investors Exchange,IEXG,us,usd,1985-11-10,Basic Materials,Gold
+WXGX,Robinson-Brock,IEXG,Investors Exchange,IEXG,us,usd,2020-09-23,Energy,Oil & Gas E&P
+DDJP,Bryant Group,IEXG,Investors Exchange,IEXG,us,usd,2021-08-17,Technology,Software—Infrastructure
+JMUW,Salazar-Ball,XNAS,NASDAQ,XNAS,us,usd,2019-11-01,Healthcare,Biotechnology
+BJCK,"Hensley, Cole and Walton",XNAS,NASDAQ,XNAS,us,usd,2004-05-09,Consumer Cyclical,Auto Manufacturers
+XXHF,"Allen, Gonzales and Reeves",BATS,Bats BZX Exchange,BATS,us,usd,2001-06-10,Consumer Defensive,Packaged Foods
+RVUI,Taylor and Sons,XNYS,New York Stock Exchange,XNYS,us,usd,2011-07-20,Energy,Oil & Gas E&P
+SJTN,Perry LLC,XASE,NYSE American,XNYS,us,usd,2022-05-29,Financial Services,Banks—Regional
+DADN,Price-Carrillo,XASE,NYSE American,XNYS,us,usd,1986-10-24,Technology,Software—Infrastructure
+WKYE,Bender LLC,XNAS,NASDAQ,XNAS,us,usd,2012-01-09,Energy,Oil & Gas E&P
+AIVV,"Marsh, Hurst and Freeman",IEXG,Investors Exchange,IEXG,us,usd,2004-01-21,Financial Services,Banks—Regional
+BFBY,Caldwell-Yates,IEXG,Investors Exchange,IEXG,us,usd,1996-09-18,Healthcare,Biotechnology
+DINI,Meadows PLC,XNAS,NASDAQ,XNAS,us,usd,2023-11-22,Energy,Oil & Gas E&P
+QBFP,Taylor-Murray,XNAS,NASDAQ,XNAS,us,usd,1988-11-26,Consumer Cyclical,Auto Manufacturers
+QYUN,Murphy-Juarez,IEXG,Investors Exchange,IEXG,us,usd,2011-04-14,Industrials,Aerospace & Defense
+RWAQ,Ruiz Ltd,ARCX,NYSE Arca,XNYS,us,usd,2022-03-11,Consumer Defensive,Packaged Foods
+DWOP,Harrington Ltd,ARCX,NYSE Arca,XNYS,us,usd,1988-03-22,Consumer Cyclical,Auto Manufacturers
+WBPM,Howell and Sons,IEXG,Investors Exchange,IEXG,us,usd,1994-01-27,Technology,Software—Infrastructure
+EQHK,Marshall LLC,IEXG,Investors Exchange,IEXG,us,usd,2010-08-02,Consumer Defensive,Packaged Foods
+KMMV,"Wilson, Weiss and Oconnell",XASE,NYSE American,XNYS,us,usd,1992-11-02,Technology,Software—Infrastructure
+LBTK,"Odonnell, Brooks and David",XNYS,New York Stock Exchange,XNYS,us,usd,1998-12-24,Consumer Defensive,Packaged Foods
+ELSO,Garcia LLC,BATS,Bats BZX Exchange,BATS,us,usd,1993-09-20,Industrials,Aerospace & Defense
+YKYC,Patel-Stanley,XNYS,New York Stock Exchange,XNYS,us,usd,1990-03-05,Industrials,Aerospace & Defense
+GPVA,Short-Garcia,IEXG,Investors Exchange,IEXG,us,usd,2010-02-17,Healthcare,Biotechnology
+ODTJ,Thompson-Boyd,XNYS,New York Stock Exchange,XNYS,us,usd,2003-11-11,Basic Materials,Gold
+NZIX,Marshall-Petersen,XNYS,New York Stock Exchange,XNYS,us,usd,2003-10-01,Consumer Cyclical,Auto Manufacturers
+UPFR,Sanchez-Marshall,ARCX,NYSE Arca,XNYS,us,usd,2011-04-10,Financial Services,Banks—Regional
+VBFU,Freeman LLC,XNAS,NASDAQ,XNAS,us,usd,2003-01-24,Basic Materials,Gold
+AAPL,Apple Inc.,XNAS,NASDAQ Global Select Market,XNAS,us,usd,1980-12-12,Technology,Consumer Electronics
+AMZN,Amazon.com Inc.,XNAS,NASDAQ Global Select Market,XNAS,us,usd,1997-05-15,Consumer Discretionary,Internet & Direct Marketing Retail
+META,Meta Platforms Inc.,XNAS,NASDAQ Global Select Market,XNAS,us,usd,2012-05-18,Communication Services,Internet Content & Information
+GOOG,Alphabet Inc.,XNAS,NASDAQ Global Select Market,XNAS,us,usd,2004-08-19,Communication Services,Internet Content & Information
+NFLX,Netflix Inc.,XNAS,NASDAQ Global Select Market,XNAS,us,usd,2002-05-23,Communication Services,Entertainment
+VBFU,Freeman LLC,XNAS,NASDAQ,XNAS,us,usd,2003-01-24,Basic Materials,Gold
+HQJA,"Le, Maldonado and Herrera",BATS,Bats BZX Exchange,BATS,us,usd,2003-08-22,Energy,Oil & Gas E&P
+RKYS,Reyes Inc,ARCX,NYSE Arca,XNYS,us,usd,2017-07-07,Energy,Oil & Gas E&P
+UTGT,"Ortiz, Powell and Phillips",IEXG,Investors Exchange,IEXG,us,usd,1994-02-22,Basic Materials,Gold
+AMZN,Amazon.com Inc.,XNAS,NASDAQ Global Select Market,XNAS,us,usd,1997-05-15,Consumer Discretionary,Internet & Direct Marketing Retail

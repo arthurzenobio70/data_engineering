@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Development environment
+  stock-pipeline-dev:
+    build:
+      context: .
+      target: development
+    container_name: stock-pipeline-dev
+    volumes:
+      - .:/app
+      - ~/.config/gcloud:/home/pipeline/.config/gcloud:ro
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/home/pipeline/.config/gcloud/application_default_credentials.json
+      - PYTHONPATH=/app/src
+    networks:
+      - pipeline-network
+    profiles:
+      - dev
+
+  # Local testing environment (simulates production setup)
+  stock-pipeline-local-test:
+    build:
+      context: .
+      target: production
+    container_name: stock-pipeline-local-test
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/google_credentials.json
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./credentials:/app/credentials:ro
+    networks:
+      - pipeline-network
+    profiles:
+      - local-test
+    # Override default command to prevent running production jobs
+    command: ["bash", "-c", "echo 'Local test environment ready. Use this for testing configurations, not running production jobs.' && sleep infinity"]
+
+  # Jupyter notebook for data exploration
+  jupyter:
+    build:
+      context: .
+      target: development
+    container_name: stock-pipeline-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app/src
+    command: >
+      bash -c "
+        uv run jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+      "
+    networks:
+      - pipeline-network
+    profiles:
+      - jupyter
+
+  # Local testing with pytest
+  test-runner:
+    build:
+      context: .
+      target: development
+    container_name: stock-pipeline-tests
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app/src
+    command: uv run pytest tests/ -v
+    networks:
+      - pipeline-network
+    profiles:
+      - test
+
+  # Local development pipeline testing (does NOT run production jobs)
+  pipeline-dev-test:
+    build:
+      context: .
+      target: development
+    container_name: stock-pipeline-dev-test
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app/src
+      - DEVELOPMENT_MODE=true
+    networks:
+      - pipeline-network
+    profiles:
+      - dev-test
+    command: >
+      bash -c "
+        echo '🧪 Pipeline Development Testing Environment' &&
+        echo '⚠️  This environment is for local testing only.' &&
+        echo '🚫 Production data processing runs on Airflow/Composer.' &&
+        echo '💡 Use this for: code testing, unit tests, development.' &&
+        bash
+      "
+
+networks:
+  pipeline-network:
+    driver: bridge
