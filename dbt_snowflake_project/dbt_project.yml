@@ -1,0 +1,110 @@
+
+name: 'finance_data_platform'
+version: '2.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'finance_data_platform'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+# Global configurations
+vars:
+  # Date configurations
+  start_date: '2020-01-01'
+  end_date: '2030-12-31'
+  
+  # Data quality thresholds
+  null_threshold: 0.05
+  duplicate_threshold: 0.01
+  
+  # Business logic flags
+  enable_data_observability: true
+  enable_incremental_models: true
+
+# Package dependencies
+packages:
+  - package: dbt-labs/dbt_utils
+    version: 1.1.1
+  - package: calogica/dbt_expectations
+    version: 0.10.1
+  - package: dbt-labs/codegen
+    version: 0.12.1
+
+# Model configurations
+models:
+  finance_data_platform:
+    +on_schema_change: "fail"
+    +meta:
+      owner: "data-engineering-team"
+      
+    # Staging layer - lightweight transformations
+    staging:
+      +materialized: view
+      +docs:
+        node_color: "lightblue"
+      +meta:
+        layer: "staging"
+        
+    # Intermediate layer - business logic transformations  
+    intermediate:
+      +materialized: view
+      +docs:
+        node_color: "orange"
+      +meta:
+        layer: "intermediate"
+        
+    # Marts layer - final business entities
+    marts:
+      +materialized: table
+      +docs:
+        node_color: "green"
+      +meta:
+        layer: "marts"
+      
+      # Core business entities
+      core:
+        +materialized: table
+        
+      # Department-specific marts
+      finance:
+        +materialized: table
+        
+      marketing:
+        +materialized: table
+
+# Snapshot configurations
+snapshots:
+  finance_data_platform:
+    +target_schema: snapshots
+    +strategy: timestamp
+    +updated_at: updated_at
+
+# Seed configurations
+seeds:
+  finance_data_platform:
+    +schema: reference_data
+    +docs:
+      node_color: "gray"
+
+# Test configurations
+tests:
+  +store_failures: true
+  +schema: test_failures
+
+# Documentation
+docs:
+  finance_data_platform:
+    +docs:
+      node_color: "lightgreen"

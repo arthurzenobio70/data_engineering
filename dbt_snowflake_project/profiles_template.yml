@@ -1,0 +1,116 @@
+# dbt profiles.yml configuration for Finance Data Platform
+# Copy this file to ~/.dbt/profiles.yml and update with your credentials
+# 
+# This configuration enables:
+# - Data lineage visualization
+# - Column-level lineage
+# - Query tags for monitoring
+# - Performance optimization
+# - Multi-environment support
+
+finance_data_platform:
+  outputs:
+    
+    # Development environment
+    dev:
+      type: snowflake
+      account: YOUR_ACCOUNT.snowflakecomputing.com  # Replace with your Snowflake account
+      user: YOUR_USERNAME                           # Replace with your username  
+      password: YOUR_PASSWORD                       # Replace with your password
+      role: ACCOUNTADMIN                           # or DBT_ROLE if created via Terraform
+      database: FINANCE_DB_DEV                     # Development database
+      warehouse: COMPUTE_WH                        # or FINANCE_WH_DEV if created via Terraform
+      schema: raw                                  # Default schema
+      threads: 4                                  # Number of concurrent connections
+      
+      # Enable data lineage and documentation features
+      client_session_keep_alive: False
+      query_tag: "dbt-{{ invocation_id }}-{{ model.unique_id }}"  # For tracking queries
+      
+      # Snowflake-specific optimizations
+      retry_on_database_errors: True
+      retry_all: True
+      
+      # Enable column-level lineage (requires dbt 1.6+)
+      # This enables detailed lineage in dbt docs
+      
+    # Staging environment (for testing before production)
+    staging:
+      type: snowflake
+      account: YOUR_ACCOUNT.snowflakecomputing.com
+      user: YOUR_USERNAME
+      password: YOUR_PASSWORD
+      role: ACCOUNTADMIN
+      database: FINANCE_DB_STAGING
+      warehouse: FINANCE_WH_STAGING
+      schema: raw
+      threads: 8
+      client_session_keep_alive: False
+      query_tag: "dbt-staging-{{ invocation_id }}-{{ model.unique_id }}"
+      retry_on_database_errors: True
+      retry_all: True
+      
+    # Production environment
+    prod:
+      type: snowflake
+      account: YOUR_ACCOUNT.snowflakecomputing.com
+      user: DBT_USER                               # Service account for production
+      password: YOUR_PRODUCTION_PASSWORD           # Production password
+      role: DBT_ROLE                              # Production role
+      database: FINANCE_DB                        # Production database
+      warehouse: FINANCE_WH                       # Production warehouse
+      schema: raw
+      threads: 16                                 # More threads for production
+      client_session_keep_alive: True            # Keep connections alive in prod
+      query_tag: "dbt-prod-{{ invocation_id }}-{{ model.unique_id }}"
+      retry_on_database_errors: True
+      retry_all: True
+      
+  # Default target environment
+  target: dev
+
+# Alternative configuration using environment variables (more secure)
+# Uncomment this section and comment out the above if you prefer environment variables
+#
+# finance_data_platform:
+#   outputs:
+#     dev:
+#       type: snowflake
+#       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+#       user: "{{ env_var('SNOWFLAKE_USER') }}"
+#       password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+#       role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+#       database: "{{ env_var('SNOWFLAKE_DATABASE', 'FINANCE_DB_DEV') }}"
+#       warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
+#       schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'raw') }}"
+#       threads: "{{ env_var('SNOWFLAKE_THREADS', 4) | int }}"
+#       client_session_keep_alive: False
+#       query_tag: "dbt-{{ invocation_id }}-{{ model.unique_id }}"
+#       retry_on_database_errors: True
+#       retry_all: True
+#   target: dev
+
+# Configuration notes:
+# 
+# 1. QUERY_TAG: Enables tracking of dbt queries in Snowflake for monitoring
+# 2. THREADS: Controls parallelism - start with 4, increase based on warehouse size
+# 3. CLIENT_SESSION_KEEP_ALIVE: Keeps connections open to reduce connection overhead
+# 4. RETRY_ON_DATABASE_ERRORS: Automatically retries on transient Snowflake errors
+# 5. The unique query tags help with:
+#    - Performance monitoring in Snowflake
+#    - Cost tracking by dbt run
+#    - Debugging specific model issues
+#
+# For data lineage visualization:
+# - Run: dbt docs generate
+# - Run: dbt docs serve
+# - Open: http://localhost:8080
+# - Click on any model to see lineage graph
+# - Use the graph view to explore dependencies
+#
+# Advanced lineage features enabled:
+# - Model-to-model lineage
+# - Column-level lineage (where supported)
+# - Source-to-model tracking
+# - Macro usage tracking
+# - Test coverage visualization

@@ -1,0 +1,268 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'models/**'
+      - 'tests/**'
+      - 'macros/**'
+      - 'seeds/**'
+      - 'snapshots/**'
+      - 'dbt_project.yml'
+      - 'packages.yml'
+      - '.github/workflows/**'
+  
+  push:
+    branches: [develop]
+    paths:
+      - 'models/**'
+      - 'tests/**'
+      - 'macros/**'
+      - 'seeds/**'
+      - 'snapshots/**'
+      - 'dbt_project.yml'
+      - 'packages.yml'
+
+env:
+  DBT_PROFILES_DIR: ./
+  DBT_PROJECT_DIR: ./
+
+jobs:
+  lint-and-format:
+    name: "Lint and Format"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install sqlfluff dbt-core dbt-snowflake pre-commit
+
+      - name: Set up pre-commit
+        run: |
+          pre-commit install
+          pre-commit run --all-files
+
+      - name: Lint SQL with SQLFluff
+        run: |
+          sqlfluff lint models/ --dialect snowflake --config .sqlfluff
+
+      - name: Check SQL formatting
+        run: |
+          sqlfluff format --check models/ --dialect snowflake --config .sqlfluff
+
+  dbt-tests:
+    name: "dbt Tests"
+    runs-on: ubuntu-latest
+    needs: lint-and-format
+    
+    strategy:
+      matrix:
+        environment: [dev, staging]
+    
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ matrix.environment == 'dev' && 'FINANCE_DB_DEV' || 'FINANCE_DB_STAGING' }}
+      SNOWFLAKE_WAREHOUSE: ${{ matrix.environment == 'dev' && 'FINANCE_WH_DEV' || 'FINANCE_WH_STAGING' }}
+      SNOWFLAKE_SCHEMA: ${{ matrix.environment == 'dev' && 'raw_dev' || 'raw_staging' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core dbt-snowflake
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat << EOF > ~/.dbt/profiles.yml
+          finance_data_platform:
+            outputs:
+              ${{ matrix.environment }}:
+                type: snowflake
+                account: ${{ env.SNOWFLAKE_ACCOUNT }}
+                user: ${{ env.SNOWFLAKE_USER }}
+                password: ${{ env.SNOWFLAKE_PASSWORD }}
+                role: ${{ env.SNOWFLAKE_ROLE }}
+                database: ${{ env.SNOWFLAKE_DATABASE }}
+                warehouse: ${{ env.SNOWFLAKE_WAREHOUSE }}
+                schema: ${{ env.SNOWFLAKE_SCHEMA }}
+                threads: 4
+                client_session_keep_alive: False
+                query_tag: dbt-ci-${{ github.run_id }}
+            target: ${{ matrix.environment }}
+          EOF
+
+      - name: Install dbt packages
+        run: dbt deps
+
+      - name: Compile dbt models
+        run: dbt compile --target ${{ matrix.environment }}
+
+      - name: Parse dbt project
+        run: dbt parse --target ${{ matrix.environment }}
+
+      - name: Test source freshness
+        run: dbt source freshness --target ${{ matrix.environment }}
+        continue-on-error: true
+
+      - name: Run dbt models (slim CI)
+        if: github.event_name == 'pull_request'
+        run: |
+          dbt run --select state:modified+ --defer --state ./target --target ${{ matrix.environment }}
+
+      - name: Run dbt models (full)
+        if: github.event_name == 'push'
+        run: dbt run --target ${{ matrix.environment }}
+
+      - name: Run dbt tests (slim CI)
+        if: github.event_name == 'pull_request'
+        run: |
+          dbt test --select state:modified+ --defer --state ./target --target ${{ matrix.environment }}
+
+      - name: Run dbt tests (full)
+        if: github.event_name == 'push'
+        run: dbt test --target ${{ matrix.environment }}
+
+      - name: Generate dbt docs
+        run: dbt docs generate --target ${{ matrix.environment }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: dbt-test-results-${{ matrix.environment }}
+          path: |
+            target/run_results.json
+            target/test_results.json
+            target/manifest.json
+
+  security-scan:
+    name: "Security Scan"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  data-quality-checks:
+    name: "Data Quality Checks"
+    runs-on: ubuntu-latest
+    needs: dbt-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: 'FINANCE_DB_DEV'
+      SNOWFLAKE_WAREHOUSE: 'FINANCE_WH_DEV'
+      SNOWFLAKE_SCHEMA: 'raw_dev'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core dbt-snowflake great-expectations
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat << EOF > ~/.dbt/profiles.yml
+          finance_data_platform:
+            outputs:
+              dev:
+                type: snowflake
+                account: ${{ env.SNOWFLAKE_ACCOUNT }}
+                user: ${{ env.SNOWFLAKE_USER }}
+                password: ${{ env.SNOWFLAKE_PASSWORD }}
+                role: ${{ env.SNOWFLAKE_ROLE }}
+                database: ${{ env.SNOWFLAKE_DATABASE }}
+                warehouse: ${{ env.SNOWFLAKE_WAREHOUSE }}
+                schema: ${{ env.SNOWFLAKE_SCHEMA }}
+                threads: 4
+                client_session_keep_alive: False
+                query_tag: dbt-data-quality-${{ github.run_id }}
+            target: dev
+          EOF
+
+      - name: Install dbt packages
+        run: dbt deps
+
+      - name: Run data quality tests with tags
+        run: |
+          dbt test --select tag:data_quality --target dev
+          dbt test --select tag:data_integrity --target dev
+          dbt test --select tag:business_logic --target dev
+
+      - name: Generate data quality report
+        run: |
+          dbt run-operation generate_schema_name --args '{schema: data_quality, custom_schema_name: reports}' --target dev
+
+      - name: Upload data quality results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: data-quality-results
+          path: target/run_results.json
+
+  notify:
+    name: "Notify Team"
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, dbt-tests, security-scan]
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: needs.dbt-tests.result == 'success'
+        run: |
+          echo "✅ All CI checks passed!"
+          
+      - name: Notify on failure
+        if: needs.dbt-tests.result == 'failure'
+        run: |
+          echo "❌ CI checks failed!"
+          exit 1

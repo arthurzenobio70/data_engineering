@@ -1,0 +1,102 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: check-docstring-first
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-docstrings]
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 2.1.2
+    hooks:
+      - id: sqlfluff-lint
+        args: ["--dialect", "snowflake", "--config", ".sqlfluff"]
+        files: \.sql$
+        exclude: ^target/|^dbt_packages/|^logs/
+      - id: sqlfluff-fix
+        args: ["--dialect", "snowflake", "--config", ".sqlfluff"]
+        files: \.sql$
+        exclude: ^target/|^dbt_packages/|^logs/
+        stages: [manual]
+
+  - repo: https://github.com/dbt-checkpoint/dbt-checkpoint
+    rev: v1.1.1
+    hooks:
+      - id: check-script-semicolon
+      - id: check-script-has-no-table-name
+      - id: dbt-compile
+      - id: dbt-docs-generate
+      - id: check-model-has-all-columns
+      - id: check-model-columns-have-desc
+        exclude: ^models/staging/
+      - id: check-model-has-description
+        exclude: ^models/staging/
+      - id: check-model-has-meta-keys
+        args: ["--meta-keys", "owner", "layer"]
+      - id: check-model-name-contract
+        args: ["--pattern", "^(stg_|int_|fct_|dim_).*"]
+      - id: check-source-table-has-description
+      - id: check-source-columns-have-desc
+      - id: check-source-has-freshness
+      - id: check-source-has-loader
+        exclude: ^models/staging/
+      - id: check-source-has-meta-keys
+        args: ["--meta-keys", "owner"]
+
+  - repo: https://github.com/terraform-docs/terraform-docs
+    rev: v0.16.0
+    hooks:
+      - id: terraform-docs-go
+        args: ["markdown", "table", "--output-file", "README.md", "terraform/"]
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.81.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      - id: terraform_tflint
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+      - id: terraform_checkov
+        args:
+          - --args=--config-file __GIT_WORKING_DIR__/.checkov.yaml
+
+  - repo: local
+    hooks:
+      - id: dbt-test
+        name: dbt test
+        entry: dbt test
+        language: system
+        files: \.(sql|yml|yaml)$
+        exclude: ^target/|^dbt_packages/|^logs/
+        stages: [manual]
+        
+      - id: dbt-compile
+        name: dbt compile
+        entry: dbt compile
+        language: system
+        files: \.(sql|yml|yaml)$
+        exclude: ^target/|^dbt_packages/|^logs/
+        pass_filenames: false

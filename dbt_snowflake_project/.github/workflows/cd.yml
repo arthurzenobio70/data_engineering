@@ -1,0 +1,267 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'models/**'
+      - 'tests/**'
+      - 'macros/**'
+      - 'seeds/**'
+      - 'snapshots/**'
+      - 'dbt_project.yml'
+      - 'packages.yml'
+  
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - prod
+      run_full_refresh:
+        description: 'Run full refresh'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  DBT_PROFILES_DIR: ./
+  DBT_PROJECT_DIR: ./
+
+jobs:
+  deploy-staging:
+    name: "Deploy to Staging"
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    
+    environment: staging
+    
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER_STAGING }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD_STAGING }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: 'FINANCE_DB_STAGING'
+      SNOWFLAKE_WAREHOUSE: 'FINANCE_WH_STAGING'
+      SNOWFLAKE_SCHEMA: 'raw_staging'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core dbt-snowflake
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat << EOF > ~/.dbt/profiles.yml
+          finance_data_platform:
+            outputs:
+              staging:
+                type: snowflake
+                account: ${{ env.SNOWFLAKE_ACCOUNT }}
+                user: ${{ env.SNOWFLAKE_USER }}
+                password: ${{ env.SNOWFLAKE_PASSWORD }}
+                role: ${{ env.SNOWFLAKE_ROLE }}
+                database: ${{ env.SNOWFLAKE_DATABASE }}
+                warehouse: ${{ env.SNOWFLAKE_WAREHOUSE }}
+                schema: ${{ env.SNOWFLAKE_SCHEMA }}
+                threads: 8
+                client_session_keep_alive: False
+                query_tag: dbt-cd-staging-${{ github.run_id }}
+            target: staging
+          EOF
+
+      - name: Install dbt packages
+        run: dbt deps
+
+      - name: Seed reference data
+        run: dbt seed --target staging
+
+      - name: Run snapshots
+        run: dbt snapshot --target staging
+
+      - name: Run dbt models (incremental)
+        if: github.event.inputs.run_full_refresh != 'true'
+        run: dbt run --target staging
+
+      - name: Run dbt models (full refresh)
+        if: github.event.inputs.run_full_refresh == 'true'
+        run: dbt run --full-refresh --target staging
+
+      - name: Run dbt tests
+        run: dbt test --target staging
+
+      - name: Generate and deploy docs
+        run: |
+          dbt docs generate --target staging
+          # Upload docs to S3 or other storage here
+
+      - name: Upload staging artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: staging-artifacts
+          path: |
+            target/manifest.json
+            target/run_results.json
+            target/catalog.json
+
+  deploy-prod:
+    name: "Deploy to Production"
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+    
+    environment: production
+    
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER_PROD }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD_PROD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: 'FINANCE_DB'
+      SNOWFLAKE_WAREHOUSE: 'FINANCE_WH'
+      SNOWFLAKE_SCHEMA: 'raw'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core dbt-snowflake
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat << EOF > ~/.dbt/profiles.yml
+          finance_data_platform:
+            outputs:
+              prod:
+                type: snowflake
+                account: ${{ env.SNOWFLAKE_ACCOUNT }}
+                user: ${{ env.SNOWFLAKE_USER }}
+                password: ${{ env.SNOWFLAKE_PASSWORD }}
+                role: ${{ env.SNOWFLAKE_ROLE }}
+                database: ${{ env.SNOWFLAKE_DATABASE }}
+                warehouse: ${{ env.SNOWFLAKE_WAREHOUSE }}
+                schema: ${{ env.SNOWFLAKE_SCHEMA }}
+                threads: 16
+                client_session_keep_alive: False
+                query_tag: dbt-cd-prod-${{ github.run_id }}
+            target: prod
+          EOF
+
+      - name: Download staging artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: staging-artifacts
+          path: ./staging-artifacts
+
+      - name: Install dbt packages
+        run: dbt deps
+
+      - name: Run pre-deployment validation
+        run: |
+          dbt compile --target prod
+          dbt parse --target prod
+
+      - name: Seed reference data
+        run: dbt seed --target prod
+
+      - name: Run snapshots
+        run: dbt snapshot --target prod
+
+      - name: Run dbt models (blue-green deployment)
+        run: |
+          # Use custom schema for blue-green deployment
+          dbt run --target prod --vars '{blue_green_deployment: true}'
+
+      - name: Run critical tests
+        run: |
+          dbt test --select tag:critical --target prod
+
+      - name: Run all tests
+        run: dbt test --target prod
+
+      - name: Promote blue-green deployment
+        run: |
+          # Custom macro to promote blue-green deployment
+          dbt run-operation promote_blue_green_deployment --target prod
+
+      - name: Generate and deploy docs
+        run: |
+          dbt docs generate --target prod
+          # Upload docs to production storage
+
+      - name: Upload production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-artifacts
+          path: |
+            target/manifest.json
+            target/run_results.json
+            target/catalog.json
+
+  post-deployment:
+    name: "Post-deployment Tasks"
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-prod]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-prod.result == 'success')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Send deployment notification
+        run: |
+          echo "🚀 Deployment completed successfully!"
+          echo "Environment: ${{ github.event.inputs.environment || 'staging + prod' }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+
+      - name: Update deployment status
+        run: |
+          # Update deployment tracking system
+          echo "Updating deployment tracking..."
+
+      - name: Trigger downstream jobs
+        run: |
+          # Trigger Airflow DAG refresh or other downstream processes
+          echo "Triggering downstream processes..."
+
+  rollback:
+    name: "Rollback Deployment"
+    runs-on: ubuntu-latest
+    if: failure() && (github.event_name == 'workflow_dispatch')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback to previous version
+        run: |
+          echo "🔄 Rolling back deployment..."
+          # Implement rollback logic here
+
+      - name: Notify team of rollback
+        run: |
+          echo "⚠️ Deployment rolled back due to failure!"

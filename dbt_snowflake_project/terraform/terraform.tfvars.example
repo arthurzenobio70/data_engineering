@@ -1,0 +1,33 @@
+# Copy this file to terraform.tfvars and fill in your values
+# terraform.tfvars is in .gitignore to prevent committing sensitive data
+
+# Environment Configuration
+environment  = "dev"
+project_name = "finance-data-platform"
+owner        = "data-engineering-team"
+
+# Snowflake Configuration
+snowflake_account  = "your-account.snowflakecomputing.com"
+snowflake_username = "your-username"
+snowflake_password = "your-password"
+snowflake_role     = "ACCOUNTADMIN"
+
+# AWS Configuration (for Terraform state backend)
+aws_region                    = "us-east-1"
+terraform_state_bucket        = "your-terraform-state-bucket"
+terraform_state_lock_table    = "your-terraform-lock-table"
+
+# Optional: Override default configurations
+# warehouses = [
+#   {
+#     name                = "FINANCE_WH"
+#     comment             = "Primary warehouse for finance operations"
+#     warehouse_size      = "MEDIUM"
+#     auto_suspend        = 300
+#     auto_resume         = true
+#     initially_suspended = true
+#     max_cluster_count   = 5
+#     min_cluster_count   = 1
+#     scaling_policy      = "STANDARD"
+#   }
+# ]

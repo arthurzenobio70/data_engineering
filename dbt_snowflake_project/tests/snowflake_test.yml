@@ -1,0 +1,345 @@
+version: 2
+
+models:
+  # Staging Layer Tests
+  - name: stg_customers
+    description: "Tests for staging customers model"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 100000
+      - dbt_utils.equal_rowcount:
+          compare_model: source('raw_data', 'customers')
+          
+    columns:
+      - name: customer_id
+        description: "Primary key for customers"
+        tests:
+          - unique
+          - not_null
+      - name: customer_key
+        description: "Surrogate key for customers"
+        tests:
+          - unique
+          - not_null
+      - name: customer_email
+        description: "Customer email address"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'
+      - name: customer_country
+        description: "Customer country"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 2
+              max_value: 50
+
+  - name: stg_orders
+    description: "Tests for staging orders model"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 1000000
+      - dbt_utils.equal_rowcount:
+          compare_model: source('raw_data', 'orders')
+          
+    columns:
+      - name: order_id
+        description: "Primary key for orders"
+        tests:
+          - unique
+          - not_null
+      - name: order_key
+        description: "Surrogate key for orders"
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Foreign key to customers"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: order_status
+        description: "Order status"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['COMPLETED', 'PENDING', 'CANCELLED', 'PROCESSING', 'SHIPPED']
+      - name: total_amount
+        description: "Total order amount"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100000
+      - name: order_date
+        description: "Order date"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: '2020-01-01'
+              max_value: '2030-12-31'
+      - name: has_future_date
+        description: "Flag for orders with future dates"
+        tests:
+          - accepted_values:
+              values: [true, false]
+
+  - name: stg_order_items
+    description: "Tests for staging order items model"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 10000000
+      - dbt_utils.equal_rowcount:
+          compare_model: source('raw_data', 'order_items')
+          
+    columns:
+      - name: item_id
+        description: "Primary key for order items"
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: "Foreign key to orders"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+      - name: product_id
+        description: "Foreign key to products"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_products')
+              field: product_id
+      - name: quantity
+        description: "Item quantity"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 1000
+      - name: unit_price
+        description: "Unit price"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
+      - name: total_price
+        description: "Total line item price"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100000
+
+  - name: stg_products
+    description: "Tests for staging products model"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 100000
+      - dbt_utils.equal_rowcount:
+          compare_model: source('raw_data', 'products')
+          
+    columns:
+      - name: product_id
+        description: "Primary key for products"
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        description: "Product name"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 1
+              max_value: 200
+      - name: product_category
+        description: "Product category"
+        tests:
+          - not_null
+      - name: product_price
+        description: "Product price"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
+      - name: price_segment
+        description: "Price segment classification"
+        tests:
+          - accepted_values:
+              values: ['budget', 'standard', 'premium', 'luxury']
+
+  # Intermediate Layer Tests
+  - name: int_order_enriched
+    description: "Tests for intermediate enriched orders model"
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('stg_orders')
+          
+    columns:
+      - name: order_id
+        description: "Primary key"
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Customer foreign key"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: item_count
+        description: "Number of items in order"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 1000
+      - name: order_value_tier
+        description: "Order value classification"
+        tests:
+          - accepted_values:
+              values: ['low_value', 'medium_value', 'high_value', 'very_high_value']
+      - name: order_size_category
+        description: "Order size classification"
+        tests:
+          - accepted_values:
+              values: ['single_item', 'small_order', 'medium_order', 'large_order']
+
+  # Marts Layer Tests
+  - name: fct_daily_order_revenue
+    description: "Tests for daily order revenue fact table"
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
+          max_value: 1000000
+          
+    columns:
+      - name: order_date
+        description: "Order date"
+        tests:
+          - not_null
+      - name: total_orders
+        description: "Total number of orders"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
+      - name: total_revenue
+        description: "Total revenue"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+      - name: completion_rate
+        description: "Order completion rate"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+      - name: cancellation_rate
+        description: "Order cancellation rate"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+  - name: dim_customers
+    description: "Tests for customer dimension table"
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('stg_customers')
+          
+    columns:
+      - name: customer_id
+        description: "Primary key"
+        tests:
+          - unique
+          - not_null
+      - name: customer_segment
+        description: "Customer segment"
+        tests:
+          - accepted_values:
+              values: ['champion', 'loyal_customer', 'potential_loyalist', 'new_customer', 'at_risk', 'cannot_lose_them', 'need_attention']
+      - name: lifetime_value
+        description: "Customer lifetime value"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
+      - name: recency_score
+        description: "RFM recency score"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5
+      - name: frequency_score
+        description: "RFM frequency score"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5
+      - name: monetary_score
+        description: "RFM monetary score"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5
+
+  - name: fct_order_line_items
+    description: "Tests for order line items fact table"
+    columns:
+      - name: item_id
+        description: "Primary key"
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: "Order foreign key"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+      - name: product_id
+        description: "Product foreign key"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_products')
+              field: product_id
+      - name: customer_id
+        description: "Customer foreign key"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: total_price
+        description: "Line item total price"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100000
+      - name: line_item_value_tier
+        description: "Line item value classification"
+        tests:
+          - accepted_values:
+              values: ['high_value_line', 'medium_value_line', 'low_value_line']
